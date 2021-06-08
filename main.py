@@ -2,6 +2,10 @@ import pyodbc as db
 
 
 def create_tables():
+    """
+    Creates the required tables in the DB
+    :return: -
+    """
     # Connecting to DB
     connection = db.connect('DRIVER={SQL Server};'
                       'SERVER=technionddscourse.database.windows.net;'
@@ -75,11 +79,21 @@ def create_tables():
 
 
 def update_inventory(transactionID):
+    """
+
+    :param transactionID:
+    :return:
+    """
     #TODO: Implement this function
     pass
 
 
 def manage_transactions(T):
+    """
+
+    :param T:
+    :return:
+    """
     # TODO: Implement this function
     pass
 
