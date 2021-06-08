@@ -74,8 +74,19 @@ def create_tables():
     connection.commit()
 
 
+def update_inventory(transactionID):
+    #TODO: Implement this function
+    pass
+
+
+def manage_transactions(T):
+    # TODO: Implement this function
+    pass
+
+
 def main():
     create_tables()
+    # TODO: Complete main
 
 
 if __name__ == '__main__':
