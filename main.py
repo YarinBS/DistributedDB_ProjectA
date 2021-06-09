@@ -2,18 +2,39 @@ import pyodbc as db
 import datetime
 import glob
 
-# X = 5 Category identifier
-# Y = 6 Types of items
-# Z = 51 -> 51*10 = 510 items i the inventory at the beginning of each day
-# => 85 of each item
+"""
+TODO:
+1. implement locking procedure - add and remove
+2. Consider T seconds of transaction
+3. iterate twice over the file:
+    deadline
+    first iteration:
+    for each line, if no failures occurres: lock() the product, update_log() and add to locked_sites_by_us
+    else, abort() all that was locked 
+    second_iteration:
+    for each line: update log, update tables and unlock()
+4. check time validity at each step
+"""
 
 # Connecting to DB
 connection = db.connect('DRIVER={SQL Server};'
-                        'SERVER=technionddscourse.database.windows.net;'
-                        'DATABASE=yarinbs;'
-                        'UID=yarinbs;'
-                        'PWD=Qwerty12!')
+                        'SERVER=XXX;'
+                        'DATABASE=XXX;'
+                        'UID=XXX;'
+                        'PWD=XXX')
 cursor = connection.cursor()
+
+
+def connect(siteName):
+    name = siteName
+    connection = db.connect('DRIVER={SQL Server};'
+                            'SERVER=XXX;'
+                            'DATABASE=' + name + ';'
+                                                 'UID=' + name + ';'
+                                                                 'PWD=XXX')
+    cursor = connection.cursor()
+
+    return cursor, connection
 
 
 def create_tables():
@@ -107,7 +128,7 @@ def update_inventory(transactionID):
     connection.commit()
 
 
-def update_Log(transactionID, record, relation, productID, action):
+def update_Log(transactionID, record, relation, productID, action, cursor, connection):
     """
     :param transactionID: a string of 30 characters at most
     :param relation: The relation the SQL statement used
@@ -125,39 +146,101 @@ def update_Log(transactionID, record, relation, productID, action):
     connection.commit()
 
 
+def find_DB_name(num):
+    # Connect to main server
+    connection = db.connect('DRIVER={SQL Server};'
+                            'SERVER=XXX;'
+                            'DATABASE=XXX;'
+                            'UID=XXX;'
+                            'PWD=XXX')
+    cursor = connection.cursor()
+
+    # Get site name
+    siteName = cursor.execute("select siteName from CategoriesToSites where categoryID = {}".format(num)).fetchval()
+
+    return siteName
+
+
+def valid(curr_amount, order_amount):
+    if curr_amount < order_amount:
+        return True
+
+
+def abort(sites_with_our_lock):
+    for siteName in sites_with_our_lock:
+        DBcursor, DBconnection = connect(siteName)
+        # REMOVE LOCKS
+
+    pass
+
+
+def commit(sites_with_our_lock, values, file):
+    for site in sites_with_our_lock:
+        DBcursor, DBconnection = connect(site)
+
+        update_Log(file, str(""""update ProductsInventory set inventory = ? where productID = ?",
+                                                                                     (curr_amount - int(values[2]), int(values[1]))"""),
+                   'ProductsInventory', values[1], 'update', DBcursor, DBconnection)
+
+        curr_amount = DBcursor.execute("select inventory from ProductsInventory where productID = ?",
+                                       (int(values[1]))).fetchval()
+
+        DBcursor.execute("update ProductsInventory set inventory = ? where productID = ?",
+                         (curr_amount - int(values[2]), int(values[1])))
+        DBconnection.commit()
+
+
 def manage_transactions(T):
     """
     Attempts to perform the order in T seconds, unless aborts
     :param T: amount of time (in seconds) in which the transaction must finish, otherwise it aborts
     :return:
     """
+    deadline = T + datetime.datetime.now()
     # TODO: Implement this function
-    pass
+    for file in glob.glob("orders/*_5.csv"):
+        with open(file) as f:
+            sites_with_our_lock = []
+            for line in f.readlines():
+                values = line.split(',')
+                if values[0] == 'categoryID':
+                    continue
+                else:
+                    # Connect to DB
+                    siteName = find_DB_name(values[0])
+                    print('Hijacking from ', end='')
+                    print(siteName + '...')
+                    DBcursor, DBconnection = connect(siteName)
+
+                    # Check ProductInventory table
+                    curr_amount = DBcursor.execute("select inventory from ProductsInventory where productID = ?",
+                                                   (int(values[1]))).fetchval()
+                    print("{}'s inventory has {} items of productID {}".format(siteName, curr_amount, values[1]))
+                    if not valid(curr_amount, int(values[2])):
+                        abort()
+
+                    else:
+                        if siteName not in sites_with_our_lock:
+                            #TODO: APPLY LOCK ON SITE
+                            sites_with_our_lock.append(siteName)
+                        DBcursor.execute("update ProductsInventory set inventory = ? where productID = ?",
+                                         (curr_amount - int(values[2]), int(values[1])))
+                        DBconnection.commit()
+
+                        update_Log(file, str(""""update ProductsInventory set inventory = ? where productID = ?",
+                                                                     (curr_amount - int(values[2]), int(values[1]))"""),
+                                   'ProductsInventory', values[1], 'update', DBcursor, DBconnection)
+                    print("{} items have been hijacked".format(values[2][:-1]))
+                    print()
 
 
 def main():
     # TODO: Complete main
 
     # create_tables()
-    update_inventory('dsdsdssdsd')
+    # update_inventory('dsdsdssdsd')
+    manage_transactions(1000)
 
 
 if __name__ == '__main__':
     main()
-
-
-"""
-def delSpesificLine():
-    os.chdir("C:\\Users\\Roi\\Desktop\\dimonds\\sequence")
-    i = 1
-    for file in glob.glob("*.out"):
-        with open(file) as f:
-            lines = f.readlines()
-            f.close()
-            del lines[1]
-            new_file = open(file + ".ans", "w+")
-            for line in lines:
-                new_file.write(line)
-            new_file.close()
-        i = i + 1
-"""
