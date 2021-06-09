@@ -9,10 +9,10 @@ import glob
 
 # Connecting to DB
 connection = db.connect('DRIVER={SQL Server};'
-                        'SERVER=technionddscourse.database.windows.net;'
-                        'DATABASE=yarinbs;'
-                        'UID=yarinbs;'
-                        'PWD=Qwerty12!')
+                        'SERVER=XXX;'
+                        'DATABASE=XXX;'
+                        'UID=XXX;'
+                        'PWD=XXX')
 cursor = connection.cursor()
 
 
