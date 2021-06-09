@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:sqlserver://technionddscourse.database.windows.net ;database=yarinbs</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="dbteam@technionddscourse.database.windows.net" uuid="6df65e7b-45a3-4f37-b35d-d6c24e3eed47">
+      <driver-ref>sqlserver.ms</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</jdbc-driver>
+      <jdbc-url>jdbc:sqlserver://technionddscourse.database.windows.net;database=dbteam</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
