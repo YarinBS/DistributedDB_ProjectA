@@ -15,18 +15,12 @@ connection = db.connect('DRIVER={SQL Server};'
                         'PWD=Qwerty12!')
 cursor = connection.cursor()
 
+
 def create_tables():
     """
     Creates the required tables in the DB
     :return: -
     """
-    # Connecting to DB
-    connection = db.connect('DRIVER={SQL Server};'
-                      'SERVER=technionddscourse.database.windows.net;'
-                      'DATABASE=yarinbs;'
-                      'UID=yarinbs;'
-                      'PWD=Qwerty12!')
-    cursor = connection.cursor()
 
     # Creating Tables in the DB
     cursor.execute("""
@@ -39,7 +33,7 @@ def create_tables():
             )
             
             """
-    )
+                   )
 
     cursor.execute("""
     
@@ -54,7 +48,7 @@ def create_tables():
             )
             
             """
-    )
+                   )
 
     cursor.execute("""
             
@@ -73,7 +67,7 @@ def create_tables():
 
             
             """
-    )
+                   )
 
     cursor.execute("""
     
@@ -87,7 +81,7 @@ def create_tables():
             )
     
     """
-    )
+                   )
 
     connection.commit()
 
@@ -146,6 +140,7 @@ def main():
 
     # create_tables()
     update_inventory('dsdsdssdsd')
+
 
 if __name__ == '__main__':
     main()
