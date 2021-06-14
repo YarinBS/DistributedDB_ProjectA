@@ -127,7 +127,6 @@ def update_inventory(transactionID):
 
     connection.commit()
 
-
 def update_Log(transactionID, record, relation, productID, action, cursor, connection):
     """
     :param transactionID: a string of 30 characters at most
@@ -137,7 +136,6 @@ def update_Log(transactionID, record, relation, productID, action, cursor, conne
     :param record: SQL statement
     :return:
     """
-    f = '%Y-%m-%d %H:%M:%S'
     ts = datetime.datetime.now()
 
     cursor.execute(
@@ -159,7 +157,6 @@ def find_DB_name(num):
     siteName = cursor.execute("select siteName from CategoriesToSites where categoryID = {}".format(num)).fetchval()
 
     return siteName
-
 
 def valid(curr_amount, order_amount):
     if curr_amount < order_amount:
@@ -235,13 +232,31 @@ def manage_transactions(T):
 
 
 def main():
-    # TODO: Complete main
-
     # create_tables()
-    # update_inventory('dsdsdssdsd')
-    manage_transactions(1000)
+    # update_inventory('updatingtheinventory4')
+    # manage_transactions(100)
+
+    # cursor.execute("insert into Locks(transactionID, productID, lockType) values ('apjh54645a54486sdfgb164', 5, 'write')")
+    # cursor.commit()
+
+    # DBcursor, DBconnection = connect('ofri0hefetz')
+    # DBcursor.execute("insert into Locks(transactionID, productID, lockType) values ('<3', 3, 'write')")
+    # DBcursor.execute("insert into Locks(transactionID, productID, lockType) values ('<3', 2, 'read')")
+
+    # DBcursor.execute("delete from Locks where transactionID = 'abcd'")
+
+    # DBconnection.commit()
+
+    #
+    # print(check_locks(('yarinbs', 5)))
+    # print(check_locks(('yarinbs', 6)))
+    # print(check_locks(('yarinbs', 1)))
+    #
+    # parallel_manage_transactions(30)
+
+    # remove_locks(('yarinbs', 6, 8, 'XYZ_5'))  # (serverName, item, amount, fileName)
+    pass
 
 
 if __name__ == '__main__':
-    print('hi')
     main()
