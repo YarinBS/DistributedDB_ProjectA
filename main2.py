@@ -4,10 +4,8 @@ import glob
 import time
 import concurrent.futures
 
-"""
-TODO:
-1. Check mikeri katze
-"""
+# import create_random_orders
+
 
 # Connecting to DB
 connection = db.connect('DRIVER={SQL Server};'
@@ -112,7 +110,10 @@ def update_inventory(transactionID):
     :param transactionID: a string of 30 characters at most
     :return:
     """
-
+    # setting time vaiables
+    start = time.perf_counter()
+    end = start + 20
+    lockFree = True
     for productID in range(1, 7):
         try:
             cursor.execute("insert into ProductsInventory(productID, inventory) values ({}, 85)".format(productID))
@@ -125,7 +126,23 @@ def update_inventory(transactionID):
             if check_locks(('XXX', productID)) == 'Unlocked':
                 lock('write', 'XXX', productID, transactionID)
             else:
-                remove_locks(('XXX', productID, 5, "clearmylocks"))
+                lockFree = False
+                lock_holder = cursor.execute(
+                    "select transactionID from Locks where productID = {}".format(
+                        productID)).fetchval()[-1]
+                if lock_holder == '5':  # Our lock, can be safely removed
+                    lockFree = True
+                    remove_locks(('yarinbs', productID, 5, "clearmylocks"))
+                else:
+                    print('Foreign lock on item! Waiting for removal...')
+                    while end - time.perf_counter() > 0 or lockFree:
+                        print('Time left: ', end='')
+                        print(end - time.perf_counter())
+                        if check_locks(('XXX', productID)) == 'Unlocked':
+                            lockFree = True
+                    if not lockFree:
+                        print("Lock was not removed, aborting inventory update for this item", productID)
+                        continue
             update_Log(transactionID,
                        str("update ProductsInventory set inventory = 85 where productID = {}".format(productID)),
                        relation="ProductsInventory", productID=productID, action="update", cursor=cursor,
@@ -295,7 +312,6 @@ def check_inventory(tup):
     :return:
     """
     DBcursor, DBconnection = connect(tup[0])
-
     # Lock the item for inspection
     try:
         DBcursor.execute(
@@ -414,15 +430,18 @@ def manage_transactions(T):
             data_triplets[i][0] = dict_of_servers[data_triplets[i][0]]
             data_triplets[i][2] = remove_suffix(data_triplets[i][2], "\n")
             data_triplets[i] = tuple(data_triplets[i])
-        dict_of_stats = create_parallel_unit(data_triplets, check_locks, time=end - time.perf_counter(), stage=2)
-        if dict_of_stats is None:
-            continue
-        print(dict_of_stats)
-        if not all(value == "Unlocked" or value == "MultiReadlocked" or value == "SingleReadlocked" for value in
-                   dict_of_stats.values()):
-            print(remove_prefix(file),
-                  " Transaction can't be made as an Atomic unit due to a Write lock on one of the products")
-            continue
+        flag = 1
+        while flag == 1:
+            dict_of_stats = create_parallel_unit(data_triplets, check_locks, time=end - time.perf_counter(), stage=2)
+            if dict_of_stats is None:
+                continue
+            print(dict_of_stats)
+            if not all(value == "Unlocked" or value == "MultiReadlocked" or value == "SingleReadlocked" for value in
+                       dict_of_stats.values()):
+                print(remove_prefix(file),
+                      " Transaction can't be made as an Atomic unit due to a Write lock on one of the products")
+                continue
+            flag = 0
         dict_of_stats = create_parallel_unit(data_triplets, check_inventory, time=end - time.perf_counter(), stage=3)
         if dict_of_stats is None:
             continue
@@ -462,14 +481,16 @@ def manage_transactions(T):
 
 
 def main():
+    # create_random_orders
+
     # create_tables()
-    # update_inventory('updatingtheinventory4')
-    # manage_transactions(100)
+    # update_inventory('updatasdfingntory')
+    manage_transactions(30)
 
     # cursor.execute("insert into Locks(transactionID, productID, lockType) values ('apjh54645a54486sdfgb164', 5, 'write')")
     # cursor.commit()
 
-    # DBcursor, DBconnection = connect('ofri0hefetz')
+    # DBcursor, DBconnection = connect('XXX')
     # DBcursor.execute("insert into Locks(transactionID, productID, lockType) values ('<3', 3, 'write')")
     # DBcursor.execute("insert into Locks(transactionID, productID, lockType) values ('<3', 2, 'read')")
 
